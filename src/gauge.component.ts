@@ -9,8 +9,139 @@ import { validate } from './shared/validators';
 
 @Component({
   selector: 'ng-gauge',
-  templateUrl: './gauge.component.html',
-  styleUrls: ['./gauge.component.css'],
+  template: `
+    <section class="angular-gauge" [class.light]="lightTheme">
+      <svg class="info" [attr.viewBox]="viewBox" xmlns="http://www.w3.org/2000/svg">
+        <circle *ngIf="light"
+          class="red-light"
+          [class.on]="input >= light"
+          [attr.cx]="center"
+          [attr.cy]="Config.LIGHT_Y"
+          [attr.r]="Config.LIGHT_RADIUS">
+        </circle>
+        <text *ngIf="max > Config.MAX_PURE_SCALE_VAL"
+          class="factor"
+          [attr.x]="center"
+          [attr.y]="Config.S_FAC_Y">
+          x{{scaleFactor}} {{unit}}
+        </text>
+        <text *ngIf="showDigital"
+          class="digital"
+          [attr.x]="center"
+          [attr.y]="Config.DIGITAL_Y">
+          {{input}}
+        </text>
+        <text class="unit" [attr.x]="center" [attr.y]="Config.UNIT_Y">{{unit}}</text>
+      </svg>
+      <svg #gauge [attr.viewBox]="viewBox" xmlns="http://www.w3.org/2000/svg">
+        <path class="main-arc" [attr.d]="arc" [attr.stroke-width]="Config.ARC_STROKE" fill="none" />
+        <path *ngFor="let arc of sectorArcs"
+          [attr.d]="arc.path"
+          [attr.stroke]="arc.color"
+          [attr.stroke-width]="Config.ARC_STROKE"
+          fill="none" />
+        <line *ngFor="let line of scaleLines"
+          [attr.stroke-width]="Config.SL_WIDTH"
+          [attr.stroke]="line.color || (!lightTheme ? '#333' : '#fff')"
+          [attr.x1]="line.from.x"
+          [attr.y1]="line.from.y"
+          [attr.x2]="line.to.x"
+          [attr.y2]="line.to.y" />
+        <text *ngFor="let val of scaleValues"
+          class="text-val"
+          dominant-baseline="central"
+          [attr.x]="val.coor.x"
+          [attr.y]="val.coor.y"
+          [attr.transform]="'rotate(' + gaugeRotationAngle + ', ' + val.coor.x + ', ' + val.coor.y + ')'">
+          {{val.text}}
+        </text>
+        <rect #arrow
+          class="arrow"
+          [attr.x]="center - Config.ARROW_WIDTH / 2"
+          [attr.y]="Config.ARROW_Y"
+          [attr.height]="center - Config.ARROW_Y"
+          [attr.width]="Config.ARROW_WIDTH"
+          [attr.rx]="Config.ARROW_WIDTH / 2"
+          [attr.ry]="Config.ARROW_WIDTH / 2">
+        </rect>
+        <circle class="arrow-pin" [attr.cx]="center" [attr.cy]="center" [attr.r]="Config.ARROW_PIN_RAD" />
+      </svg>
+    </section>
+  `,
+  styles: [`
+    @font-face {
+      font-family: 'Orbitron';
+      font-style: normal;
+      font-weight: 700;
+      src: local('Orbitron Bold'), local('Orbitron-Bold'), url(https://fonts.gstatic.com/s/orbitron/v8/Y82YH_MJJWnsH2yUA5AuYY4P5ICox8Kq3LLUNMylGO4.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215;
+    }
+
+    .angular-gauge {
+      position: relative;
+      width: 400px;
+    }
+
+    .angular-gauge svg.info {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    .angular-gauge rect.arrow {
+      transform-origin: 50% 100%;
+      fill: orange;
+    }
+
+    .angular-gauge text {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: bold;
+      text-anchor: middle;
+      fill: #333;
+    }
+
+    .angular-gauge.light text {
+      fill: #fff;
+    }
+
+    .angular-gauge text.text-val {
+      font-size: 12px;
+    }
+
+    .angular-gauge circle.arrow-pin {
+      fill: #333;
+    }
+
+    .angular-gauge path.main-arc {
+      stroke: #333;
+    }
+
+    .angular-gauge.light path.main-arc {
+      stroke: #fff;
+    }
+
+    .angular-gauge text.factor {
+      font-size: 7px;
+    }
+
+    .angular-gauge text.digital {
+      font-size: 16px;
+    }
+
+    .angular-gauge text.unit {
+      font-size: 10px;
+    }
+
+    .angular-gauge circle.red-light {
+      fill: #ff4f4f;
+      opacity: 0.1;
+    }
+
+    .angular-gauge circle.red-light.on {
+      opacity: 1;
+    }
+
+  `],
   encapsulation: ViewEncapsulation.None
 })
 export class GaugeComponent implements OnInit, AfterViewInit, GaugeProps {
@@ -92,7 +223,7 @@ export class GaugeComponent implements OnInit, AfterViewInit, GaugeProps {
   /**
    * Calculate arc.
    */
-  private _arc(start, end: number): string {
+  private _arc(start: number, end: number): string {
     const largeArc = end - start <= 180 ? 0 : 1;
     const startCoor = this._getAngleCoor(start);
     const endCoor = this._getAngleCoor(end);
@@ -187,7 +318,7 @@ export class GaugeComponent implements OnInit, AfterViewInit, GaugeProps {
   /**
    * Checks whether the line (based on index) is big or small separator.
    */
-  private _isSeparatorReached(idx, lineFrequency: number): Separator {
+  private _isSeparatorReached(idx: number, lineFrequency: number): Separator {
     const separators = this.max / this.scaleFactor;
     const totalSeparators = this._end / lineFrequency;
     const separateAtIdx = totalSeparators / separators;
@@ -251,7 +382,7 @@ export class GaugeComponent implements OnInit, AfterViewInit, GaugeProps {
    */
   private _getScaleLineColor(alpha: number): string {
     alpha *= (-1);
-    let color: string;
+    let color: string = '';
 
     if (this.sectors) {
       this.sectors.forEach((s: Sector) => {
@@ -267,7 +398,7 @@ export class GaugeComponent implements OnInit, AfterViewInit, GaugeProps {
   /**
    * Add a scale line to the list that will be later rendered.
    */
-  private _addScaleLine(sin, cos, higherEnd, lowerEnd: number, color: string): void {
+  private _addScaleLine(sin: number, cos: number, higherEnd: number, lowerEnd: number, color: string): void {
     this.scaleLines.push({
       from: {
         x: sin * higherEnd + this.center,
@@ -284,7 +415,7 @@ export class GaugeComponent implements OnInit, AfterViewInit, GaugeProps {
   /**
    * Add a scale value.
    */
-  private _addScaleValue(sin, cos, lowerEnd, alpha: number): void {
+  private _addScaleValue(sin: number, cos: number, lowerEnd: number, alpha: number): void {
     let val = Math.round(alpha * (this.max / this._end)) * (-1);
     let posMargin = Config.TXT_MARGIN * 2;
 

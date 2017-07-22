@@ -1,0 +1,31 @@
+{
+  "name": "ng2-gauge",
+  "version": "1.0.3",
+  "description": "Gauge component for Angular",
+  "main": "bundles/ng2-gauge.umd.js",
+  "module": "index.js",
+  "typings": "index.d.ts",
+  "keywords": [
+    "angular",
+    "angular2",
+    "angular 2",
+    "angular4",
+    "gauge",
+    "ng gauge",
+    "angular gauge"
+  ],
+  "author": "hawkgs (Georgi Serev)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hawkgs/ng2-gauge.git"
+  },
+  "homepage": "https://github.com/hawkgs/ng2-gauge",
+  "bugs": {
+    "url": "https://github.com/hawkgs/ng2-gauge/issues"
+  },
+  "peerDependencies": {
+    "@angular/core": "^2.4.0 || ^4.0.0",
+    "rxjs": "^5.0.1"
+  }
+}

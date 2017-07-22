@@ -1,10 +1,10 @@
-import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 import { GaugeComponent } from './gauge.component';
 
 @NgModule({
-  imports: [BrowserModule],
+  imports: [CommonModule],
   declarations: [GaugeComponent],
   exports: [GaugeComponent]
 })
