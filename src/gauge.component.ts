@@ -1,6 +1,6 @@
 import {
   Component, Input, ViewChild, OnInit,
-  AfterViewInit, Renderer, ElementRef, ViewEncapsulation
+  AfterViewInit, Renderer2, ElementRef, ViewEncapsulation
 } from '@angular/core';
 
 import { Sector, Line, Cartesian, RenderSector, Value, Separator, GaugeProps } from './shared/gauge.interface';
@@ -171,7 +171,7 @@ export class GaugeComponent implements OnInit, AfterViewInit, GaugeProps {
   private _end: number;
   private _input: number;
 
-  constructor(private _renderer: Renderer) {
+  constructor(private _renderer: Renderer2) {
     this.scaleLines = [];
     this.scaleValues = [];
   }
@@ -270,7 +270,7 @@ export class GaugeComponent implements OnInit, AfterViewInit, GaugeProps {
    */
   private _updateArrowPos(input: number): void {
     const pos = (this._end / this.max) * input;
-    this._renderer.setElementStyle(this.arrow.nativeElement, 'transform', `rotate(${pos}deg)`);
+    this._renderer.setStyle(this.arrow.nativeElement, 'transform', `rotate(${pos}deg)`);
   }
 
   /**
@@ -278,7 +278,7 @@ export class GaugeComponent implements OnInit, AfterViewInit, GaugeProps {
    */
   private _rotateGauge(): void {
     const angle = 360 - this.start;
-    this._renderer.setElementStyle(this.gauge.nativeElement, 'transform', `rotate(-${angle}deg)`);
+    this._renderer.setStyle(this.gauge.nativeElement, 'transform', `rotate(-${angle}deg)`);
   }
 
   /**
