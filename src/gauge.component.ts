@@ -10,38 +10,37 @@ import { validate } from './shared/validators';
 @Component({
   selector: 'ng-gauge',
   template: `
-    <section class="angular-gauge" [class.light]="lightTheme">
+    <section class="ng-gauge" [class.light]="lightTheme" [style.width]="size + 'px'">
       <svg class="info" [attr.viewBox]="viewBox" xmlns="http://www.w3.org/2000/svg">
-        <circle *ngIf="light"
-          class="red-light"
+        <circle *ngIf="light"  class="red-light"
           [class.on]="input >= light"
           [attr.cx]="center"
-          [attr.cy]="Config.LIGHT_Y"
-          [attr.r]="Config.LIGHT_RADIUS">
+          [attr.cy]="config.LIGHT_Y"
+          [attr.r]="config.LIGHT_RADIUS">
         </circle>
-        <text *ngIf="max > Config.MAX_PURE_SCALE_VAL"
+        <text *ngIf="max > config.MAX_PURE_SCALE_VAL"
           class="factor"
           [attr.x]="center"
-          [attr.y]="Config.S_FAC_Y">
+          [attr.y]="config.S_FAC_Y">
           x{{scaleFactor}} {{unit}}
         </text>
         <text *ngIf="showDigital"
           class="digital"
           [attr.x]="center"
-          [attr.y]="Config.DIGITAL_Y">
+          [attr.y]="config.DIGITAL_Y">
           {{input}}
         </text>
-        <text class="unit" [attr.x]="center" [attr.y]="Config.UNIT_Y">{{unit}}</text>
+        <text class="unit" [attr.x]="center" [attr.y]="config.UNIT_Y">{{unit}}</text>
       </svg>
       <svg #gauge [attr.viewBox]="viewBox" xmlns="http://www.w3.org/2000/svg">
-        <path class="main-arc" [attr.d]="arc" [attr.stroke-width]="Config.ARC_STROKE" fill="none" />
+        <path class="main-arc" [attr.d]="arc" [attr.stroke-width]="config.ARC_STROKE" fill="none" />
         <path *ngFor="let arc of sectorArcs"
           [attr.d]="arc.path"
           [attr.stroke]="arc.color"
-          [attr.stroke-width]="Config.ARC_STROKE"
+          [attr.stroke-width]="config.ARC_STROKE"
           fill="none" />
         <line *ngFor="let line of scaleLines"
-          [attr.stroke-width]="Config.SL_WIDTH"
+          [attr.stroke-width]="config.SL_WIDTH"
           [attr.stroke]="line.color || (!lightTheme ? '#333' : '#fff')"
           [attr.x1]="line.from.x"
           [attr.y1]="line.from.y"
@@ -57,14 +56,14 @@ import { validate } from './shared/validators';
         </text>
         <rect #arrow
           class="arrow"
-          [attr.x]="center - Config.ARROW_WIDTH / 2"
-          [attr.y]="Config.ARROW_Y"
-          [attr.height]="center - Config.ARROW_Y"
-          [attr.width]="Config.ARROW_WIDTH"
-          [attr.rx]="Config.ARROW_WIDTH / 2"
-          [attr.ry]="Config.ARROW_WIDTH / 2">
+          [attr.x]="center - config.ARROW_WIDTH / 2"
+          [attr.y]="config.ARROW_Y"
+          [attr.height]="center - config.ARROW_Y"
+          [attr.width]="config.ARROW_WIDTH"
+          [attr.rx]="config.ARROW_WIDTH / 2"
+          [attr.ry]="config.ARROW_WIDTH / 2">
         </rect>
-        <circle class="arrow-pin" [attr.cx]="center" [attr.cy]="center" [attr.r]="Config.ARROW_PIN_RAD" />
+        <circle class="arrow-pin" [attr.cx]="center" [attr.cy]="center" [attr.r]="config.ARROW_PIN_RAD" />
       </svg>
     </section>
   `,
@@ -77,70 +76,69 @@ import { validate } from './shared/validators';
       unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215;
     }
 
-    .angular-gauge {
+    .ng-gauge {
       position: relative;
-      width: 400px;
+      width: 400px; /* Default size, use @Input size for manipulation */
     }
 
-    .angular-gauge svg.info {
+    .ng-gauge svg.info {
       position: absolute;
       top: 0;
       left: 0;
     }
 
-    .angular-gauge rect.arrow {
-      transform-origin: 50% 100%;
+    .ng-gauge rect.arrow {
+      transform-origin: 50% 50%;
       fill: orange;
     }
 
-    .angular-gauge text {
+    .ng-gauge text {
       font-family: 'Orbitron', sans-serif;
       font-weight: bold;
       text-anchor: middle;
       fill: #333;
     }
 
-    .angular-gauge.light text {
+    .ng-gauge.light text {
       fill: #fff;
     }
 
-    .angular-gauge text.text-val {
+    .ng-gauge text.text-val {
       font-size: 12px;
     }
 
-    .angular-gauge circle.arrow-pin {
+    .ng-gauge circle.arrow-pin {
       fill: #333;
     }
 
-    .angular-gauge path.main-arc {
+    .ng-gauge path.main-arc {
       stroke: #333;
     }
 
-    .angular-gauge.light path.main-arc {
+    .ng-gauge.light path.main-arc {
       stroke: #fff;
     }
 
-    .angular-gauge text.factor {
+    .ng-gauge text.factor {
       font-size: 7px;
     }
 
-    .angular-gauge text.digital {
+    .ng-gauge text.digital {
       font-size: 16px;
     }
 
-    .angular-gauge text.unit {
+    .ng-gauge text.unit {
       font-size: 10px;
     }
 
-    .angular-gauge circle.red-light {
+    .ng-gauge circle.red-light {
       fill: #ff4f4f;
       opacity: 0.1;
     }
 
-    .angular-gauge circle.red-light.on {
+    .ng-gauge circle.red-light.on {
       opacity: 1;
     }
-
   `],
   encapsulation: ViewEncapsulation.None
 })
@@ -148,9 +146,9 @@ export class GaugeComponent implements OnInit, AfterViewInit, GaugeProps {
   @ViewChild('gauge') gauge: ElementRef;
   @ViewChild('arrow') arrow: ElementRef;
 
-  @Input() start: number = Config.DEF_START;
-  @Input() end: number = Config.DEF_END;
-  @Input() max: number;
+  @Input() size: number;
+  @Input() start: number;
+  @Input() end: number;
   @Input() sectors: Sector[];
   @Input() unit: string;
   @Input() showDigital: boolean;
@@ -159,7 +157,6 @@ export class GaugeComponent implements OnInit, AfterViewInit, GaugeProps {
   @Input() factor: number;
   @Input() config: GaugeConfig;
 
-  Config: GaugeConfig = Config;
   viewBox: string;
   scaleLines: Line[];
   scaleValues: Value[];
@@ -168,13 +165,13 @@ export class GaugeComponent implements OnInit, AfterViewInit, GaugeProps {
   radius: number;
   center: number;
   scaleFactor: number;
+
   private _end: number;
   private _input: number;
+  private _max: number;
+  private _mappedSectors: Sector[];
 
-  constructor(private _renderer: Renderer2) {
-    this.scaleLines = [];
-    this.scaleValues = [];
-  }
+  constructor(private _renderer: Renderer2) {}
 
   @Input()
   set input(val: number) {
@@ -186,6 +183,19 @@ export class GaugeComponent implements OnInit, AfterViewInit, GaugeProps {
     return this._input;
   }
 
+  @Input()
+  set max(val: number) {
+    if (this._max) {
+      this._max = val;
+      this._initialize();
+    }
+    this._max = val;
+  }
+
+  get max(): number {
+    return this._max;
+  }
+
   get arc(): string {
     return this._arc(0, this._end);
   }
@@ -195,12 +205,21 @@ export class GaugeComponent implements OnInit, AfterViewInit, GaugeProps {
   }
 
   ngOnInit(): void {
+    this.config = Object.assign(Config, this.config);
+
+    if (!this.start) {
+      this.start = this.config.DEF_START;
+    }
+    if (!this.end) {
+      this.end = this.config.DEF_END;
+    }
+
     validate(this);
 
-    const width = Config.WIDTH + Config.ARC_STROKE;
+    const width = this.config.WIDTH + this.config.ARC_STROKE;
 
     this.viewBox = `0 0 ${width} ${width}`;
-    this.radius = Config.WIDTH / 2;
+    this.radius = this.config.WIDTH / 2;
     this.center = width / 2;
     this._end = this.end;
 
@@ -210,14 +229,24 @@ export class GaugeComponent implements OnInit, AfterViewInit, GaugeProps {
       this._end -= this.start;
     }
 
-    this._updateArrowPos(this._input);
-    this._calculateSectors();
-    this.scaleFactor = this.factor || this._determineScaleFactor();
-    this._createScale();
+    this._initialize();
   }
 
   ngAfterViewInit(): void {
     this._rotateGauge();
+  }
+
+  /**
+   * Initialize gauge.
+   */
+  private _initialize() {
+    this.scaleLines = [];
+    this.scaleValues = [];
+
+    this._calculateSectors();
+    this._updateArrowPos(this._input);
+    this.scaleFactor = this.factor || this._determineScaleFactor();
+    this._createScale();
   }
 
   /**
@@ -250,14 +279,14 @@ export class GaugeComponent implements OnInit, AfterViewInit, GaugeProps {
       return;
     }
 
-    this.sectors = this.sectors.map((s: Sector) => {
+    this._mappedSectors = JSON.parse(JSON.stringify(this.sectors));
+    this._mappedSectors.forEach((s: Sector) => {
       const ratio = this._end / this.max;
       s.from *= ratio;
       s.to *= ratio;
-      return s;
     });
 
-    this.sectorArcs = this.sectors.map((s: Sector) => {
+    this.sectorArcs = this._mappedSectors.map((s: Sector) => {
       return {
         path: this._arc(s.from, s.to),
         color: s.color
@@ -304,7 +333,7 @@ export class GaugeComponent implements OnInit, AfterViewInit, GaugeProps {
     if (separateAtAngle % 1 !== 0) {
       lineFrequency = separateAtAngle;
     } else {
-      lineFrequency = Config.INIT_LINE_FREQ * 2;
+      lineFrequency = this.config.INIT_LINE_FREQ * 2;
       for (lineFrequency; lineFrequency <= separateAtAngle; lineFrequency++) {
         if (separateAtAngle % lineFrequency === 0) {
           break;
@@ -340,22 +369,22 @@ export class GaugeComponent implements OnInit, AfterViewInit, GaugeProps {
     let placedVals = 0;
 
     for (let alpha = 0, i = 0; alpha >= (-1) * this._end; alpha -= accumWith, i++) {
-      let lineHeight = Config.SL_NORM;
+      let lineHeight = this.config.SL_NORM;
       const sepReached = this._isSeparatorReached(i, accumWith);
 
       // Set the line height based on its type
       switch (sepReached) {
         case Separator.Big:
           placedVals++;
-          lineHeight = Config.SL_SEP;
+          lineHeight = this.config.SL_SEP;
           break;
         case Separator.Small:
-          lineHeight = Config.SL_MID_SEP;
+          lineHeight = this.config.SL_MID_SEP;
           break;
       }
 
       // Draw the line
-      const higherEnd = this.center - Config.ARC_STROKE - 2;
+      const higherEnd = this.center - this.config.ARC_STROKE - 2;
       const lowerEnd = higherEnd - lineHeight;
 
       const alphaRad = Math.PI / 180 * (alpha + 180);
@@ -382,10 +411,10 @@ export class GaugeComponent implements OnInit, AfterViewInit, GaugeProps {
    */
   private _getScaleLineColor(alpha: number): string {
     alpha *= (-1);
-    let color: string = '';
+    let color = '';
 
-    if (this.sectors) {
-      this.sectors.forEach((s: Sector) => {
+    if (this._mappedSectors) {
+      this._mappedSectors.forEach((s: Sector) => {
         if (s.from <= alpha && alpha <= s.to) {
           color = s.color;
         }
@@ -417,10 +446,10 @@ export class GaugeComponent implements OnInit, AfterViewInit, GaugeProps {
    */
   private _addScaleValue(sin: number, cos: number, lowerEnd: number, alpha: number): void {
     let val = Math.round(alpha * (this.max / this._end)) * (-1);
-    let posMargin = Config.TXT_MARGIN * 2;
+    let posMargin = this.config.TXT_MARGIN * 2;
 
     // Use the multiplier instead of the real value, if above MAX_PURE_SCALE_VAL (i.e. 1000)
-    if (this.max > Config.MAX_PURE_SCALE_VAL) {
+    if (this.max > this.config.MAX_PURE_SCALE_VAL) {
       val /= this.scaleFactor;
       val = Math.round(val * 100) / 100;
       posMargin /= 2;
