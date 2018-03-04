@@ -1,6 +1,6 @@
 {
   "name": "ng2-gauge",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Gauge component for Angular",
   "main": "bundles/ng2-gauge.umd.js",
   "module": "index.js",
